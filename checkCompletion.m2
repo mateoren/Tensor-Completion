@@ -1,39 +1,15 @@
+--
 -- Classify the subsets of entries from which it is possible to complete a 2x2x2 tensor
-
-restart
-
-d = 3; -- # direction of the tensor
-
-k = 4; -- # of entries
-
-indexedEntries = toList ({1,1,1}..{2,2,2}); -- all entries
-
-kSubsets = subsets(indexedEntries, k); -- subsets of size k
-
-        
-firstIndices = {1,1,1}; 
-
-lastIndices = {2,2,2};
-
-    
-listOfParameters = flatten for i from 1 to d list for j from 1 to lastIndices#(i-1) list s_{i,j}; -- indexed variables
-    
-
-R=QQ[p_firstIndices..p_lastIndices]; -- polynomial rings
-
-S=QQ[listOfParameters];
-    
-
-substituteList=for i to #listOfParameters-1 list (flatten entries vars S)_i => random(1,100); -- give random values to the parameters
+--
 
 
-   
-   
--- This function should take 2 parameters: I and E (where E = specifiedIndices)
-   
+
+-- function definitions
+
+
 isThisEntryGood = (I,E) -> (
     
-    -- careful with originalRank
+    
   
     newE=append(E,I);
     
@@ -44,11 +20,12 @@ isThisEntryGood = (I,E) -> (
     newRank == originalRank
     
     )
-    
-    
-verifyCompletability = E -> (
+
+
+isThisSubsetGood = E -> (
     
     -- for a subset of entries, yields true if it completes the tensor
+    -- also stores the entries completable from E
     
     Eparameters = for i to #E-1 list product for j to d-1 list s_{j+1,E#i#j};
     
@@ -56,39 +33,15 @@ verifyCompletability = E -> (
     
     completableEntries = select(for I in last \ baseName \ gens R list (I, isThisEntryGood(I,E)),p -> p#1);
     
+    append(compEntriesArchive, completableEntries);
     
-    
-    #completableEntries == 8
+    #completableEntries == #indexedEntries
     
     )
 
 
 
----
---- testing
----
 
-
--- Initially I had problems with this example because the variable originalRank retained the value of the last subset 
--- that was checked before. So I have to update it first.
-
-
-goodSubsets = select(kSubsets, verifyCompletability);
-
-E = goodSubsets#0;
-
-Eparameters = for i to #E-1 list product for j to d-1 list s_{j+1,E#i#j};
-
-originalRank = rank substitute(jacobian ideal Eparameters, substituteList);
-
-a =  select(for I in last \ baseName \ gens R list (I, isThisEntryGood(I, E)),p -> p#1);
-
-completed = for E in goodSubsets list select(for I in last \ baseName \ gens R list (I, isThisEntryGood(I,E)),p -> p#1);
-
-
----
----
----
 
 
 
@@ -99,7 +52,7 @@ printSlicesOriginal=specifiedEntries-> (
     
     for i to #specifiedEntries-1 do M_(specifiedEntries#i#2)_(specifiedEntries#i#0-1,specifiedEntries#i#1-1)=1; -- -1 to the index, starts at 0.
     
-    for i from 1 to lastIndices#2 do << M_(i); -- <<M_(i) prints the matrix.
+    for i from 1 to lastIndices#2 do << M_(i); -- << M_(i) prints the matrix.
     << " - ";
     )    
 
@@ -116,3 +69,117 @@ printSlicesCompletion = completableEntries-> (
     )
 
 
+
+-- main program
+
+
+restart
+
+
+
+tSize = (2,3,2);
+
+k = 5; -- # of entries
+
+
+main  = (tSize, k) -> (
+    
+    d = #tSize;
+    
+    firstIndices = {1,1,1};
+    
+    lastIndices = for i to d-1 list tSize#i;
+
+    -- all entries
+    indexedEntries = toList (firstIndices..lastIndices);
+    
+    -- indexed variables
+    listOfParameters = flatten for i from 1 to d list for j from 1 to lastIndices#(i-1) list s_{i,j};
+
+    -- polynomial rings
+    R=QQ[p_firstIndices..p_lastIndices];
+    S=QQ[listOfParameters];
+    
+    
+    -- give random values to the parameters
+    substituteList=for i to #listOfParameters-1 list (flatten entries vars S)_i => random(1,100); 
+ 
+   
+    --
+    -- Generate all k-subsets and check completability for each one. --
+   
+    -- k-subsets 
+    kSubsets = subsets(indexedEntries, k);
+    
+    
+    -- this is where all the completable entries associated with subsets will be stored
+    compEntriesArchive = {};
+    
+    
+    -- k-subsets of entries that complete the whole tensor
+    -- Finds the good subsets and the entries that can be completed
+    goodSubsets = select(kSubsets, isThisSubsetGood);
+    
+    -- the complement of goodSubsets
+    badSubsets = toList(set(kSubsets)- set(goodSubsets));
+    
+    
+    
+    -- missing: 
+    
+    -- create a sort of dictionary that stores the indices of good and bad subsets in the archive.
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    )
+
+
+
+
+
+
+
+
+
+
+    
+    
+
+
+
+
+   
+   
+
+
+
+
+
+
+
+
+
+------------------------
+-- Ideas to implement --
+------------------------
+
+-- Experiment with tensors of different sizes
+
+-- 
+ 
+-----------------------------------
+-- cosas que quiero del programa --
+-----------------------------------
+
+-- que se puedan implementar diferentes ejemplos facilmente 
+-- mas modular, mas logico, bite sized portions
+-- more logical choosing of functions
+-- visualizacion del resultado, un print statement o una grafica o algo
+-- identificar los casos esenciales ...
