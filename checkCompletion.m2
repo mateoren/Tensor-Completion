@@ -1,6 +1,10 @@
 --
--- Classify the subsets of entries from which it is possible to complete a 2x2x2 tensor
+-- Compute the subsets of entries that complete the tensor.
 --
+
+
+
+-- Tip: use := within a function to get local variables.
 
 
 
@@ -11,11 +15,11 @@ isThisEntryGood = (I,E) -> (
     
     
   
-    newE=append(E,I);
+    newE := append(E,I);
     
-    nEparameters=for i to #newE-1 list product for j to d-1 list s_{j+1,newE#i#j};
+    nEparameters := for i to #newE-1 list product for j to d-1 list s_{j+1,newE#i#j};
     
-    newRank = rank substitute(jacobian ideal nEparameters ,substituteList);
+    newRank := rank substitute(jacobian ideal nEparameters ,substituteList);
 
     newRank == originalRank
     
@@ -33,9 +37,12 @@ isThisSubsetGood = E -> (
     
     completableEntries = select(for I in last \ baseName \ gens R list (I, isThisEntryGood(I,E)),p -> p#1);
     
-    append(compEntriesArchive, completableEntries);
     
-    #completableEntries == #indexedEntries
+    
+    (if #completableEntries == #indexedEntries then (gCollection = append(gCollection, completableEntries), goodSubsets =  append(goodSubsets,E))
+    else if #completableEntries < #indexedEntries then (bCollection = append(bCollection, completableEntries), badSubsets = append(badSubsets, E)));
+    
+    --#completableEntries == #printSlicesOriginal
     
     )
 
@@ -45,7 +52,7 @@ isThisSubsetGood = E -> (
 
 
 
-printSlicesOriginal=specifiedEntries-> (
+printSlicesOriginal = specifiedEntries-> (
     
     
     for i from 1 to lastIndices#2 do M_(i)=mutableMatrix(ZZ,lastIndices#0,lastIndices#1);
@@ -53,7 +60,7 @@ printSlicesOriginal=specifiedEntries-> (
     for i to #specifiedEntries-1 do M_(specifiedEntries#i#2)_(specifiedEntries#i#0-1,specifiedEntries#i#1-1)=1; -- -1 to the index, starts at 0.
     
     for i from 1 to lastIndices#2 do << M_(i); -- << M_(i) prints the matrix.
-    << " - ";
+    
     )    
 
 printSlicesCompletion = completableEntries-> (
@@ -65,7 +72,9 @@ printSlicesCompletion = completableEntries-> (
     for i to #completableEntries-1 do M_(completableEntries#i#0#2)_(completableEntries#i#0#0-1,completableEntries#i#0#1-1)=1;
     
     for i from 1 to lastIndices#2 do << M_(i);
-    << " - ";
+    
+    << " - - ";
+    
     )
 
 
@@ -81,10 +90,18 @@ tSize = (2,3,2);
 
 k = 5; -- # of entries
 
-
-main  = (tSize, k) -> (
+--main  =  arg -> ( --(tSize, k) -> (
+    
+    --tSize := arg#0;
+    
+    
+    --k := arg#1;
+    
     
     d = #tSize;
+   
+    
+
     
     firstIndices = {1,1,1};
     
@@ -102,7 +119,7 @@ main  = (tSize, k) -> (
     
     
     -- give random values to the parameters
-    substituteList=for i to #listOfParameters-1 list (flatten entries vars S)_i => random(1,100); 
+    substituteList = for i to #listOfParameters-1 list (flatten entries vars S)_i => random(1,100); 
  
    
     --
@@ -111,24 +128,22 @@ main  = (tSize, k) -> (
     -- k-subsets 
     kSubsets = subsets(indexedEntries, k);
     
+    -- subsets of entries that can complete the tensor
+    goodSubsets = {};
     
-    -- this is where all the completable entries associated with subsets will be stored
-    compEntriesArchive = {};
+    -- subsets of entries that don't fully complete the tensor
+    badSubsets = {};
+   
+    -- this is where all the completable entries associated with good subsets will be stored
+    gCollection = {};
+    
+    -- the analog for bad subsets 
+    bCollection = {};
     
     
-    -- k-subsets of entries that complete the whole tensor
-    -- Finds the good subsets and the entries that can be completed
-    goodSubsets = select(kSubsets, isThisSubsetGood);
+    for E in kSubsets do isThisSubsetGood(E);
     
-    -- the complement of goodSubsets
-    badSubsets = toList(set(kSubsets)- set(goodSubsets));
-    
-    
-    
-    -- missing: 
-    
-    -- create a sort of dictionary that stores the indices of good and bad subsets in the archive.
-        
+       
     
     
     
@@ -138,14 +153,27 @@ main  = (tSize, k) -> (
     
     
     
-    )
+  -- )
+
+
+
+--main(tSize,k);
 
 
 
 
+--printSlicesOriginal(goodSubsets#503)
+--printSlicesCompletion(goodArchive#503)
 
 
+printSlicesOriginal(badSubsets#200)
+printSlicesCompletion(bCollection#200)
 
+<< "         ";
+
+
+printSlicesOriginal(badSubsets#0)
+printSlicesCompletion(bCollection#0)
 
 
 
@@ -166,20 +194,13 @@ main  = (tSize, k) -> (
 
 
 
-------------------------
--- Ideas to implement --
-------------------------
+-------------------
+-- Things to do  --
+-------------------
 
--- Experiment with tensors of different sizes
+-- Experiment with tensors of different sizes and different values of k
 
--- 
+-- find a way to identify ''equivalent'' sets of entries
+
+-- come up with a better visualization for the result
  
------------------------------------
--- cosas que quiero del programa --
------------------------------------
-
--- que se puedan implementar diferentes ejemplos facilmente 
--- mas modular, mas logico, bite sized portions
--- more logical choosing of functions
--- visualizacion del resultado, un print statement o una grafica o algo
--- identificar los casos esenciales ...
