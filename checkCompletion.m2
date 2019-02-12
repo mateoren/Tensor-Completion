@@ -2,29 +2,20 @@
 -- Compute the subsets of entries that complete the tensor.
 --
 
-
-
 -- Tip: use := within a function to get local variables.
 
-
-
+-----------------------
 -- function definitions
-
+-----------------------
 
 isThisEntryGood = (I,E) -> (
     
-    
-  
     newE := append(E,I);
-    
     nEparameters := for i to #newE-1 list product for j to d-1 list s_{j+1,newE#i#j};
-    
     newRank := rank substitute(jacobian ideal nEparameters ,substituteList);
-
     newRank == originalRank
     
     )
-
 
 isThisSubsetGood = E -> (
     
@@ -32,12 +23,8 @@ isThisSubsetGood = E -> (
     -- also stores the entries completable from E
     
     Eparameters = for i to #E-1 list product for j to d-1 list s_{j+1,E#i#j};
-    
     originalRank = rank substitute(jacobian ideal Eparameters, substituteList);
-    
     completableEntries = select(for I in last \ baseName \ gens R list (I, isThisEntryGood(I,E)),p -> p#1);
-    
-    
     
     (if #completableEntries == #indexedEntries then (gCollection = append(gCollection, completableEntries), goodSubsets =  append(goodSubsets,E))
     else if #completableEntries < #indexedEntries then (bCollection = append(bCollection, completableEntries), badSubsets = append(badSubsets, E)));
@@ -46,19 +33,10 @@ isThisSubsetGood = E -> (
     
     )
 
-
-
-
-
-
-
 printSlicesOriginal = specifiedEntries-> (
     
-    
     for i from 1 to lastIndices#2 do M_(i)=mutableMatrix(ZZ,lastIndices#0,lastIndices#1);
-    
     for i to #specifiedEntries-1 do M_(specifiedEntries#i#2)_(specifiedEntries#i#0-1,specifiedEntries#i#1-1)=1; -- -1 to the index, starts at 0.
-    
     for i from 1 to lastIndices#2 do << M_(i); -- << M_(i) prints the matrix.
     
     )    
@@ -68,43 +46,28 @@ printSlicesCompletion = completableEntries-> (
     -- The input is a list of sequences where each sequence is of the form: ({1,2,1},true)
 
     for i from 1 to lastIndices#2 do M_(i)=mutableMatrix(ZZ,lastIndices#0,lastIndices#1);
-    
     for i to #completableEntries-1 do M_(completableEntries#i#0#2)_(completableEntries#i#0#0-1,completableEntries#i#0#1-1)=1;
-    
     for i from 1 to lastIndices#2 do << M_(i);
     
     << " - - ";
     
     )
-
-
-
+    
+---------------    
 -- main program
-
+---------------
 
 restart
 
-
-
 tSize = (2,3,2);
-
 k = 5; -- # of entries
 
 --main  =  arg -> ( --(tSize, k) -> (
     
     --tSize := arg#0;
-    
-    
-    --k := arg#1;
-    
-    
+    --k := arg#1
     d = #tSize;
-   
-    
-
-    
     firstIndices = {1,1,1};
-    
     lastIndices = for i to d-1 list tSize#i;
 
     -- all entries
@@ -117,11 +80,9 @@ k = 5; -- # of entries
     R=QQ[p_firstIndices..p_lastIndices];
     S=QQ[listOfParameters];
     
-    
     -- give random values to the parameters
     substituteList = for i to #listOfParameters-1 list (flatten entries vars S)_i => random(1,100); 
  
-   
     --
     -- Generate all k-subsets and check completability for each one. --
    
@@ -140,67 +101,20 @@ k = 5; -- # of entries
     -- the analog for bad subsets 
     bCollection = {};
     
-    
     for E in kSubsets do isThisSubsetGood(E);
-    
        
-    
-    
-    
-    
-    
-    
-    
-    
-    
   -- )
-
-
 
 --main(tSize,k);
 
-
-
-
 --printSlicesOriginal(goodSubsets#503)
 --printSlicesCompletion(goodArchive#503)
-
 
 printSlicesOriginal(badSubsets#200)
 printSlicesCompletion(bCollection#200)
 
 << "         ";
 
-
 printSlicesOriginal(badSubsets#0)
 printSlicesCompletion(bCollection#0)
-
-
-
-    
-    
-
-
-
-
-   
-   
-
-
-
-
-
-
-
-
-
--------------------
--- Things to do  --
--------------------
-
--- Experiment with tensors of different sizes and different values of k
-
--- find a way to identify ''equivalent'' sets of entries
-
--- come up with a better visualization for the result
  
