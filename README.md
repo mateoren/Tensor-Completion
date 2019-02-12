@@ -1,2 +1,3 @@
-# tensor-completion-with-Macaulay2
-Macaulay2 code based on the article
+# Tensor Completion
+
+Macaulay2 implementation of a genetic algorithm for reconstruction partial tensor.
